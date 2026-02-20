@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-objection-trx",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "ESLint plugin that ensures trx is forwarded to Objection.js database calls",
   "keywords": [
     "eslint",
