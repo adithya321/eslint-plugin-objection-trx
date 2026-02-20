@@ -1,13 +1,19 @@
 {
   "name": "eslint-plugin-objection-trx",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "ESLint plugin that ensures trx is forwarded to Objection.js database calls",
   "keywords": [
     "eslint",
     "eslintplugin",
-    "eslint-plugin"
+    "eslint-plugin",
+    "objection",
+    "objectionjs",
+    "knex",
+    "transaction",
+    "trx"
   ],
   "author": "Adithya Jayasankar",
+  "type": "module",
   "main": "./lib/index.js",
   "exports": "./lib/index.js",
   "files": [
@@ -20,12 +26,9 @@
     "test": "mocha tests --recursive",
     "update:eslint-docs": "eslint-doc-generator"
   },
-  "dependencies": {
-    "requireindex": "^1.2.0"
-  },
   "devDependencies": {
-    "eslint": "^9.0.0",
     "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
     "eslint-doc-generator": "^2.0.0",
     "eslint-plugin-eslint-plugin": "^6.0.0",
     "eslint-plugin-n": "^17.0.0",
@@ -37,6 +40,14 @@
   },
   "peerDependencies": {
     "eslint": ">=9.15.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adithya321/eslint-plugin-objection-trx.git"
+  },
+  "homepage": "https://github.com/adithya321/eslint-plugin-objection-trx#readme",
+  "bugs": {
+    "url": "https://github.com/adithya321/eslint-plugin-objection-trx/issues"
   },
   "license": "MIT"
 }
