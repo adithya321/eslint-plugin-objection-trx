@@ -98,6 +98,18 @@ ruleTester.run("require-trx-forwarding", rule, {
     `function outer(trx) { function middle() { function inner() { Model.query(trx).findById(1); } } }`,
     // trx in switch case body — correctly forwarded
     `async function f(trx) { switch (action) { case "save": Model.query(trx).findById(1); break; } }`,
+    // trx declared AFTER the call site (TDZ) — not flagged
+    `async function save() { Model.query().findById(1); const trx = await getTransaction(); }`,
+    // trx declared after the call site with let — not flagged
+    `async function save() { Model.query().findById(1); let trx = await getTransaction(); }`,
+    // trx declared after the call in nested scope — not flagged
+    `async function save() { await Model.query().findById(1); const trx = await knex.transaction(); await Model.query(trx).insert(data); }`,
+    // $query with trx declared after — not flagged
+    `async function save() { await item.$query().patch(data); const trx = await getTransaction(); }`,
+    // $relatedQuery with trx declared after — not flagged
+    `async function save() { await item.$relatedQuery("tags"); const trx = await getTransaction(); }`,
+    // $fetchGraph with trx declared after — not flagged
+    `async function save() { await item.$fetchGraph(expr); const trx = await getTransaction(); }`,
   ],
   invalid: [
     {
