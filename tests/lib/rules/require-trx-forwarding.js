@@ -110,6 +110,24 @@ ruleTester.run("require-trx-forwarding", rule, {
     `async function save() { await item.$relatedQuery("tags"); const trx = await getTransaction(); }`,
     // $fetchGraph with trx declared after — not flagged
     `async function save() { await item.$fetchGraph(expr); const trx = await getTransaction(); }`,
+    // .query() after trx.commit() — transaction finalized, not flagged
+    `async function save(trx) { await Model.query(trx).insert(data); await trx.commit(); await Model.query().findById(1); }`,
+    // .query() after trx.rollback() — transaction finalized, not flagged
+    `async function save(trx) { await trx.rollback(); Model.query().findById(1); }`,
+    // .$query() after trx.commit() — not flagged
+    `async function save(trx) { await trx.commit(); await item.$query().patch(data); }`,
+    // .$relatedQuery() after trx.commit() — not flagged
+    `async function save(trx) { await trx.commit(); await item.$relatedQuery("tags"); }`,
+    // .$fetchGraph() after trx.commit() — not flagged
+    `async function save(trx) { await trx.commit(); await item.$fetchGraph(expr); }`,
+    // .transacting() after trx.commit() — not flagged
+    `async function save(trx) { await trx.commit(); await Model.query(trx).where("id", 1).transacting(trx); }`,
+    // commit in try/catch — queries after the block are not flagged
+    `async function save(trx) { try { await Model.query(trx).insert(data); await trx.commit(); } catch(e) { await trx.rollback(); } await Model.query().findById(1); }`,
+    // commit in ancestor scope — nested function query not flagged
+    `async function save(trx) { await trx.commit(); function inner() { Model.query().findById(1); } }`,
+    // commit inside if block — query after if not flagged (trx may be finalized)
+    `async function save(trx) { if (ok) { await trx.commit(); } await Model.query().findById(1); }`,
   ],
   invalid: [
     {
@@ -408,6 +426,18 @@ ruleTester.run("require-trx-forwarding", rule, {
       code: `function f(trx) { const result = cond ? Model.query().findById(1) : null; }`,
       output: `function f(trx) { const result = cond ? Model.query(trx).findById(1) : null; }`,
       errors: [{ messageId: "missingTrxQuery" }],
+    },
+    {
+      // .query() BEFORE trx.commit() — still flagged (trx is active)
+      code: `async function save(trx) { await Model.query().findById(1); await trx.commit(); }`,
+      output: `async function save(trx) { await Model.query(trx).findById(1); await trx.commit(); }`,
+      errors: [{ messageId: "missingTrxQuery" }],
+    },
+    {
+      // .$query() BEFORE trx.rollback() — still flagged
+      code: `async function save(trx) { await item.$query().patch(data); await trx.rollback(); }`,
+      output: `async function save(trx) { await item.$query(trx).patch(data); await trx.rollback(); }`,
+      errors: [{ messageId: "missingTrxInstanceQuery" }],
     },
   ],
 });
